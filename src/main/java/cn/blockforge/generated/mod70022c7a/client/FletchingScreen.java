@@ -1,0 +1,403 @@
+package cn.blockforge.generated.mod70022c7a.client;
+
+import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlockEntity;
+import cn.blockforge.generated.mod70022c7a.menu.FletchingMenu;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
+    private static final int WIDTH = 348;
+    private static final int HEIGHT = 222;
+
+    // 深色羊皮纸配色：槽底加深以保证白色物品数量可读
+    private static final int PAPER = 0xFFD3C29C;
+    private static final int PANEL_FILL = 0xFFC3B089;
+    private static final int PAPER_LIGHT = 0xFFE3D6B8;
+    private static final int BORDER = 0xFF1F180F;
+    private static final int BORDER_MID = 0xFF4A3C29;
+    private static final int BORDER_SOFT = 0xFF78684C;
+    private static final int SLOT_FILL = 0xFFBFA87D;
+    private static final int SLOT_LOCK_FILL = 0xFF9C8862;
+    private static final int TEXT = 0xFF1B130C;
+    private static final int TEXT_MUTED = 0xFF51422F;
+    private static final int TEXT_LOCKED = 0xFF847254;
+    private static final int ARROW_FILL = 0xFF6B5939;
+    private static final int ARROW_FILL_HOVER = 0xFF4B3C24;
+    private static final int ARROW_FILL_OFF = 0xFFAE9B74;
+    /** 附魔台样式：可负担时数字为绿，不足时为红褐。 */
+    private static final int COST_OK = 0xFF2C521D;
+    private static final int COST_NO = 0xFF7C3020;
+    private static final int GLYPHS_OK = 0xFF655434;
+    private static final int GLYPHS_NO = 0xFF98886A;
+    /** 标准银河字母（原版附魔台所用），仅作装饰。 */
+    private static final String GLYPH_SET = "ᔑʖᓵ↸ᒷ⍑╎ꖎᒲ⍊𝙹∷ᓭ⚍∨⨅";
+
+    private static final int[] SLOT_REQUIRED_TIER = {0, 0, 0, 1, 2, 3, 4, 5, 0, 3, 3, 3, 5, 5, 5, 5, 5, 5, 0};
+    private static final int[] SLOT_TAB = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, -1};
+    private static final String[] ENCHANT_KEYS = {
+            "piercing", "acceleration", "stability", "shatter",
+            "critical", "venom", "incineration", "lifesteal"
+    };
+
+    private final List<OfferBar> offerBars = new ArrayList<>();
+    private ChevronButton prevButton;
+    private ChevronButton nextButton;
+
+    public FletchingScreen(FletchingMenu menu, Inventory inventory, Component title) {
+        super(menu, inventory, title);
+        imageWidth = WIDTH;
+        imageHeight = HEIGHT;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        prevButton = addRenderableWidget(new ChevronButton(leftPos + 102, topPos + 80, 13, 40, true, () -> switchPage(-1)));
+        prevButton.setTooltip(Tooltip.create(Component.translatable("hint.mod_70022c7a.page.prev")));
+        nextButton = addRenderableWidget(new ChevronButton(leftPos + 332, topPos + 80, 13, 40, false, () -> switchPage(1)));
+        for (int i = 0; i < 3; i++) {
+            offerBars.add(addRenderableWidget(new OfferBar(leftPos + 178, topPos + 78 + i * 20, 104, 16, i)));
+        }
+        updateVisibility();
+    }
+
+    private void switchPage(int delta) {
+        int target = menu.getTab() + delta;
+        if (target < 0 || target > 2) return;
+        if (!isPageUnlocked(target)) return;
+        menu.setTab(target);
+        updateVisibility();
+    }
+
+    private boolean isPageUnlocked(int tab) {
+        return switch (tab) {
+            case 1 -> menu.getTier() >= 3;
+            case 2 -> menu.getTier() >= 5;
+            default -> true;
+        };
+    }
+
+    private void updateVisibility() {
+        int tab = menu.getTab();
+        prevButton.visible = tab > 0;
+        nextButton.visible = tab < 2;
+        boolean nextUnlocked = tab < 2 && isPageUnlocked(tab + 1);
+        nextButton.active = nextUnlocked;
+        boolean enchantPage = tab == FletchingMenu.TAB_ENCHANT;
+        for (OfferBar bar : offerBars) bar.visible = enchantPage;
+        if (tab >= 2) return;
+        Component hint;
+        if (nextUnlocked) hint = Component.translatable("hint.mod_70022c7a.page.next");
+        else hint = Component.translatable(tab + 1 == 1
+                ? "hint.mod_70022c7a.page.enchant_locked"
+                : "hint.mod_70022c7a.page.bow_locked");
+        nextButton.setTooltip(Tooltip.create(hint));
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        updateVisibility();
+        for (OfferBar bar : offerBars) {
+            int index = bar.index;
+            int offer = menu.getOffer(index);
+            int cost = menu.getCost(index);
+            int lapis = menu.slots.get(FletchingMenu.SLOT_ENCHANT_LAPIS).getItem().getCount();
+            boolean xpOk = minecraft != null && minecraft.player != null
+                    && (minecraft.player.getAbilities().instabuild || minecraft.player.experienceLevel >= cost);
+            bar.active = menu.getTier() >= 3 && offer != 0 && lapis >= index + 1 && xpOk;
+        }
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, partialTick);
+        renderSlotHints(graphics, mouseX, mouseY);
+        renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    private void renderSlotHints(GuiGraphics graphics, int mouseX, int mouseY) {
+        Slot slot = hoveredSlot;
+        if (slot == null || !slot.isActive()) slot = slotAt(mouseX, mouseY);
+        if (slot == null || slot.hasItem()) return;
+        int index = menu.slots.indexOf(slot);
+        if (index < 0 || index >= FletchingStationBlockEntity.SLOT_COUNT) return;
+        int slotTab = SLOT_TAB[index];
+        if (slotTab >= 0 && slotTab != menu.getTab()) return;
+        if (index == FletchingMenu.SLOT_UPGRADE && menu.getTier() >= 5) return;
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable("hint.mod_70022c7a.slot." + index).withStyle(ChatFormatting.GRAY));
+        int required = SLOT_REQUIRED_TIER[index];
+        if (required > 0 && menu.getTier() < required) {
+            lines.add(Component.translatable("hint.mod_70022c7a.locked",
+                    Component.translatable("tier.mod_70022c7a." + required)).withStyle(ChatFormatting.RED));
+        }
+        graphics.renderTooltip(font, lines, Optional.empty(), mouseX, mouseY);
+    }
+
+    private Slot slotAt(int mouseX, int mouseY) {
+        for (Slot slot : menu.slots) {
+            int sx = leftPos + slot.x;
+            int sy = topPos + slot.y;
+            if (mouseX >= sx && mouseX < sx + 16 && mouseY >= sy && mouseY < sy + 16) return slot;
+        }
+        return null;
+    }
+
+    /** 悬停批量材料时在物品 tooltip 末尾追加台子余量。 */
+    @Override
+    protected List<Component> getTooltipFromContainerItem(ItemStack stack) {
+        List<Component> lines = new ArrayList<>(super.getTooltipFromContainerItem(stack));
+        if (hoveredSlot == null) return lines;
+        int index = menu.slots.indexOf(hoveredSlot);
+        if (index < 0 || index >= FletchingStationBlockEntity.SLOT_COUNT) return lines;
+        int ratio = bulkRatio(index, stack);
+        if (ratio <= 0) return lines;
+        int banked = menu.getRemainderFor(index);
+        if (banked > 0) {
+            int total = stack.getCount() * ratio;
+            lines.add(Component.translatable("hint.mod_70022c7a.remainder", total - banked, total).withStyle(ChatFormatting.GRAY));
+            if (stack.getCount() == 1) {
+                lines.add(Component.translatable("hint.mod_70022c7a.locked_last").withStyle(ChatFormatting.RED));
+            }
+        }
+        return lines;
+    }
+
+    /** 该槽位物品是否为按支数累计的批量材料，返回比例；否则 0。 */
+    private static int bulkRatio(int slotIndex, ItemStack stack) {
+        if (stack.isEmpty()) return 0;
+        if (slotIndex == FletchingMenu.SLOT_SHAFT) {
+            return stack.is(net.minecraft.tags.ItemTags.PLANKS) ? 8 : 0;
+        }
+        boolean potion = stack.getItem() instanceof net.minecraft.world.item.PotionItem;
+        if (slotIndex == FletchingMenu.SLOT_TIP) return FletchingMenu.tipSupplies(stack);
+        if (slotIndex >= FletchingMenu.SLOT_EFFECT_1 && slotIndex < FletchingMenu.SLOT_EFFECT_1 + FletchingMenu.EFFECT_SLOT_COUNT) {
+            return potion ? 8 : 4;
+        }
+        return 0;
+    }
+
+    @Override
+    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        int x = leftPos;
+        int y = topPos;
+
+        // 双层边框
+        graphics.fill(x - 1, y - 1, x + WIDTH + 1, y + HEIGHT + 1, BORDER);
+        graphics.fill(x, y, x + WIDTH, y + HEIGHT, PAPER);
+        graphics.renderOutline(x + 3, y + 3, WIDTH - 6, HEIGHT - 6, BORDER_MID);
+
+        // 左侧背包面板
+        graphics.fill(x + 9, y + 16, x + 101, y + 204, PANEL_FILL);
+        graphics.renderOutline(x + 9, y + 16, 92, 188, BORDER);
+        graphics.renderOutline(x + 12, y + 19, 86, 182, BORDER_SOFT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.inventory"), x + 55, y + 23, TEXT);
+
+        drawSlotFrames(graphics, x, y);
+        drawUpgradeLine(graphics, x, y);
+
+        switch (menu.getTab()) {
+            case FletchingMenu.TAB_CRAFT -> drawCraftPage(graphics, x, y);
+            case FletchingMenu.TAB_ENCHANT -> drawEnchantPage(graphics, x, y);
+            case FletchingMenu.TAB_BOW -> drawBowPage(graphics, x, y);
+        }
+    }
+
+    private void drawSlotFrames(GuiGraphics graphics, int x, int y) {
+        int tab = menu.getTab();
+        int tier = menu.getTier();
+        for (int i = 0; i < menu.slots.size(); i++) {
+            Slot slot = menu.slots.get(i);
+            int sx = x + slot.x - 1;
+            int sy = y + slot.y - 1;
+            if (i < FletchingStationBlockEntity.SLOT_COUNT) {
+                int slotTab = SLOT_TAB[i];
+                if (slotTab >= 0 && slotTab != tab) continue;
+                if (i == FletchingMenu.SLOT_UPGRADE) {
+                    if (tier >= 5) continue; // 满级：整块升级区域移除
+                    graphics.fill(sx, sy, sx + 18, sy + 18, SLOT_FILL);
+                    graphics.renderOutline(sx, sy, 18, 18, BORDER);
+                    continue;
+                }
+                if (i >= FletchingMenu.SLOT_EFFECT_1 && i < FletchingMenu.SLOT_EFFECT_1 + FletchingMenu.EFFECT_SLOT_COUNT) {
+                    continue; // 效果槽连成长条，统一绘制
+                }
+                boolean locked = tier < SLOT_REQUIRED_TIER[i];
+                graphics.fill(sx, sy, sx + 18, sy + 18, locked ? SLOT_LOCK_FILL : SLOT_FILL);
+                graphics.renderOutline(sx, sy, 18, 18, locked ? BORDER_SOFT : BORDER_MID);
+            } else {
+                graphics.fill(sx, sy, sx + 18, sy + 18, SLOT_FILL);
+                graphics.renderOutline(sx, sy, 18, 18, BORDER_SOFT);
+            }
+        }
+        if (tab == FletchingMenu.TAB_CRAFT) {
+            drawEffectStrip(graphics, x, y, tier);
+        }
+    }
+
+    /** 设计图中五格效果槽是一条带内部分隔线的长条。 */
+    private void drawEffectStrip(GuiGraphics graphics, int x, int y, int tier) {
+        Slot first = menu.slots.get(FletchingMenu.SLOT_EFFECT_1);
+        int left = x + first.x - 1;
+        int top = y + first.y - 1;
+        int width = FletchingMenu.EFFECT_SLOT_COUNT * 18;
+        graphics.fill(left, top, left + width, top + 18, SLOT_FILL);
+        graphics.renderOutline(left, top, width, 18, BORDER_MID);
+        for (int i = 0; i < FletchingMenu.EFFECT_SLOT_COUNT; i++) {
+            if (tier < i + 1) {
+                graphics.fill(left + i * 18 + 1, top + 1, left + (i + 1) * 18 - 1, top + 17, SLOT_LOCK_FILL);
+            }
+            if (i > 0) graphics.fill(left + i * 18, top + 1, left + i * 18 + 1, top + 17, BORDER_SOFT);
+        }
+    }
+
+    /** 无阴影居中文字（drawCenteredString 自带阴影，视觉上会形成重影）。 */
+    private void drawCenteredNoShadow(GuiGraphics graphics, Component text, int centerX, int y, int color) {
+        graphics.drawString(font, text, centerX - font.width(text) / 2, y, color, false);
+    }
+
+    private void drawCraftPage(GuiGraphics graphics, int x, int y) {
+        drawCenteredNoShadow(graphics, Component.translatable("page.mod_70022c7a.craft"), x + 218, y + 30, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("desc.mod_70022c7a.craft1"), x + 218, y + 48, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("desc.mod_70022c7a.craft2"), x + 218, y + 62, TEXT_MUTED);
+
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.feather"), x + 132, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.shaft"), x + 156, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.tip"), x + 180, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.effects_tier"), x + 242, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.output"), x + 304, y + 80, TEXT);
+
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.planks"), x + 156, y + 114, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.potion"), x + 180, y + 114, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.effects"), x + 242, y + 114, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("note.mod_70022c7a.shaft"), x + 156, y + 128, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("desc.mod_70022c7a.craft_hint"), x + 218, y + 152, TEXT_MUTED);
+    }
+
+    private void drawEnchantPage(GuiGraphics graphics, int x, int y) {
+        drawCenteredNoShadow(graphics, Component.translatable("page.mod_70022c7a.enchant"), x + 218, y + 30, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.arrow"), x + 138, y + 84, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.lapis"), x + 162, y + 84, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.output"), x + 304, y + 84, TEXT);
+    }
+
+    private void drawBowPage(GuiGraphics graphics, int x, int y) {
+        drawCenteredNoShadow(graphics, Component.translatable("page.mod_70022c7a.bow"), x + 218, y + 30, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.bow"), x + 218, y + 72, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.bow_effects"), x + 218, y + 138, TEXT);
+        if (menu.getTier() < 5) {
+            drawCenteredNoShadow(graphics, Component.translatable("hint.mod_70022c7a.bow_locked"), x + 218, y + 156, TEXT_LOCKED);
+        }
+    }
+
+    private void drawUpgradeLine(GuiGraphics graphics, int x, int y) {
+        if (menu.getTier() >= 5) return; // 满级：整块升级区域移除
+        Component text = Component.translatable("label.mod_70022c7a.upgrade_line");
+        graphics.drawString(font, text, x + 100, y + 186, TEXT, false);
+        int lineStart = x + 100 + font.width(text) + 4;
+        graphics.fill(lineStart, y + 189, x + 296, y + 190, BORDER_SOFT);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        // 所有文字均在 renderBg 中绘制
+    }
+
+    /** 大号立体翻页箭头。 */
+    private final class ChevronButton extends Button {
+        private final boolean left;
+        private final Runnable action;
+
+        private ChevronButton(int x, int y, int width, int height, boolean left, Runnable action) {
+            super(new Builder(Component.empty(), b -> { }).bounds(x, y, width, height).createNarration(s -> Component.empty()));
+            this.left = left;
+            this.action = action;
+        }
+
+        @Override
+        public void onPress() {
+            if (active && visible) action.run();
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            int bx = getX();
+            int by = getY();
+            int w = getWidth();
+            int h = getHeight();
+            boolean hovered = isHovered() && active;
+            int fill = !active ? ARROW_FILL_OFF : hovered ? ARROW_FILL_HOVER : ARROW_FILL;
+            drawTriangle(graphics, bx, by, w, h, left, BORDER);
+            drawTriangle(graphics, bx + 1, by + 2, w - 2, h - 4, left, fill);
+        }
+
+        private void drawTriangle(GuiGraphics graphics, int bx, int by, int w, int h, boolean left, int color) {
+            for (int i = 0; i < w; i++) {
+                int half = (h / 2) * (left ? i + 1 : w - i) / w;
+                graphics.fill(bx + i, by + h / 2 - half, bx + i + 1, by + h / 2 + half, color);
+            }
+        }
+    }
+
+    /** 附魔选项行：与原版附魔台一致，仅显示神秘符文与所需等级，附魔内容未知。 */
+    private final class OfferBar extends Button {
+        private final int index;
+
+        private OfferBar(int x, int y, int width, int height, int index) {
+            super(new Builder(Component.empty(), b -> {
+                if (Minecraft.getInstance().gameMode != null) {
+                    Minecraft.getInstance().gameMode.handleInventoryButtonClick(menu.containerId, 50 + index);
+                }
+            }).bounds(x, y, width, height));
+            this.index = index;
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            int bx = getX();
+            int by = getY();
+            int w = getWidth();
+            int h = getHeight();
+            int offer = menu.getOffer(index);
+            int cost = menu.getCost(index);
+            boolean affordable = active;
+            int fill = affordable ? (isHovered() ? 0xFFF6EFDF : PAPER_LIGHT) : SLOT_LOCK_FILL;
+            graphics.fill(bx, by, bx + w, by + h, fill);
+            graphics.renderOutline(bx, by, w, h, affordable ? BORDER_MID : BORDER_SOFT);
+
+            // 神秘符文（每次选项固定，点击前不显示附魔内容）
+            String glyphs = glyphRow(offer, index);
+            graphics.drawString(font, glyphs, bx + 5, by + 4, affordable ? GLYPHS_OK : GLYPHS_NO, false);
+            // 右侧显示所需经验等级（原版样式）
+            String costText = String.valueOf(cost);
+            graphics.drawString(font, costText, bx + w - 5 - font.width(costText), by + 4,
+                    affordable ? COST_OK : COST_NO, false);
+        }
+
+        private String glyphRow(int offer, int index) {
+            StringBuilder sb = new StringBuilder();
+            long seed = offer * 1103515245L + index * 12345L + 7;
+            for (int i = 0; i < 7; i++) {
+                seed = seed * 6364136223846793005L + 1442695040888963407L;
+                int pick = (int) (Math.abs(seed / 65536) % GLYPH_SET.length());
+                sb.append(GLYPH_SET.charAt(pick));
+                if (i == 2 || i == 4) sb.append(' ');
+            }
+            return sb.toString();
+        }
+    }
+}

@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+
+# 运行目录（存档、日志、配置）
+run/
+logs/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# 编译产物
+*.class
+out/
+
+# 系统
+Thumbs.db
+.DS_Store
