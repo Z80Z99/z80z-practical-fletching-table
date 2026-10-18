@@ -59,7 +59,17 @@ public class FletchingMenu extends AbstractContainerMenu {
     private static final int DATA_REM_SHAFT = 7;
     private static final int DATA_REM_TIP = 8;
     private static final int DATA_REM_EFFECT = 9;
-    private static final int DATA_COUNT = 14;
+    private static final int DATA_USED_MASK = 14;
+    private static final int DATA_COUNT = 15;
+
+    /** 图鉴效果道具顺序（位掩码与之一一对应）。 */
+    public static final String[] GUIDE_EFFECT_IDS = {
+            "minecraft:firework_rocket", "minecraft:slime_block", "minecraft:echo_shard", "minecraft:ender_pearl",
+            "minecraft:chorus_fruit", "minecraft:slime_ball", "minecraft:bell", "minecraft:goat_horn",
+            "minecraft:honey_bottle", "minecraft:blaze_powder", "minecraft:cobweb", "minecraft:bone_meal",
+            "minecraft:snowball", "minecraft:glowstone_dust", "minecraft:gunpowder", "minecraft:dragon_breath",
+            "minecraft:prismarine_shard", "minecraft:amethyst_block"
+    };
 
     private static final String[] ENCHANT_KEYS = {
             "Piercing", "Acceleration", "Stability", "Shatter",
@@ -78,6 +88,9 @@ public class FletchingMenu extends AbstractContainerMenu {
     private final int[] costs = new int[3];
     private int tab = TAB_CRAFT;
     private boolean updatingOutput;
+    /** 预览缓存：输入签名不变时复用，避免每 tick 重建 NBT 与重掷随机。 */
+    private String cachedSignature;
+    private ItemStack cachedPreview = ItemStack.EMPTY;
 
     public FletchingMenu(int id, Inventory inventory, net.minecraft.network.FriendlyByteBuf buffer) {
         this(id, inventory, null, buffer.readBlockPos());
@@ -106,6 +119,7 @@ public class FletchingMenu extends AbstractContainerMenu {
                 if (index >= DATA_REM_EFFECT && index < DATA_REM_EFFECT + EFFECT_SLOT_COUNT) {
                     return bulkRemainder(container.getItem(SLOT_EFFECT_1 + index - DATA_REM_EFFECT));
                 }
+                if (index == DATA_USED_MASK) return usedMask();
                 return 0;
             }
             @Override public void set(int index, int value) { }
@@ -150,7 +164,15 @@ public class FletchingMenu extends AbstractContainerMenu {
     public BlockPos getStationPos() { return stationPos; }
     public int getOffer(int index) { return data.get(DATA_OFFER + index); }
     public int getCost(int index) { return data.get(DATA_COST + index); }
-    /** 箭杆槽（木板）/箭头槽（药水）/效果槽当前物品的已累计支数，供客户端悬停显示。 */
+    /** 已使用道具的位掩码（与 GUIDE_EFFECT_IDS 顺序对应），供客户端图鉴过滤。 */
+    private int usedMask() {
+        return station == null ? 0 : station.getUsedMask();
+    }
+
+    public boolean isGuideItemUsed(int guideIndex) {
+        return (data.get(DATA_USED_MASK) & (1 << guideIndex)) != 0;
+    }
+
     public int getRemainderFor(int slotIndex) {
         if (slotIndex == SLOT_SHAFT) return data.get(DATA_REM_SHAFT);
         if (slotIndex == SLOT_TIP) return data.get(DATA_REM_TIP);
@@ -212,7 +234,7 @@ public class FletchingMenu extends AbstractContainerMenu {
             TipStats stats = tipStats(tip);
             tips = stats == null ? 0 : bulkSupply(tip, stats.supplies());
         }
-        int cap = new ItemStack(GeneratedMod.CRAFTED_ARROW.get()).getMaxStackSize();
+        int cap = GeneratedMod.CRAFTED_ARROW.get().getMaxStackSize();
         int tier = getTier();
         int n = Math.min(Math.min(feather.getCount(), shafts), tips);
         for (int i = 0; i < EFFECT_SLOT_COUNT; i++) {
@@ -249,12 +271,38 @@ public class FletchingMenu extends AbstractContainerMenu {
     }
 
     private ItemStack previewCraftResult() {
+        String signature = craftSignature();
+        if (signature != null && signature.equals(cachedSignature) && !cachedPreview.isEmpty()) {
+            return cachedPreview.copy();
+        }
         ItemStack feather = container.getItem(SLOT_FEATHER);
         ItemStack shaft = container.getItem(SLOT_SHAFT);
         ItemStack tip = container.getItem(SLOT_TIP);
         int outputCount = computeBatchSize(feather, shaft, tip);
-        if (outputCount < 1) return ItemStack.EMPTY;
-        return createArrowBatch(tip, outputCount, Math.min(getTier(), EFFECT_SLOT_COUNT));
+        if (outputCount < 1) {
+            cachedSignature = signature;
+            cachedPreview = ItemStack.EMPTY;
+            return ItemStack.EMPTY;
+        }
+        ItemStack result = createArrowBatch(tip, outputCount, Math.min(getTier(), EFFECT_SLOT_COUNT));
+        cachedSignature = signature;
+        cachedPreview = result.copy();
+        return result;
+    }
+
+    /** 输入签名：任一输入物品（含 NBT）、数量、等级或余量变化都会让预览失效。 */
+    private String craftSignature() {
+        StringBuilder sb = new StringBuilder(96);
+        sb.append(getTier()).append('|');
+        for (int slot = SLOT_FEATHER; slot <= SLOT_EFFECT_1 + EFFECT_SLOT_COUNT - 1; slot++) {
+            ItemStack stack = container.getItem(slot);
+            sb.append(stack.getItem().hashCode()).append(':').append(stack.getCount()).append(':')
+                    .append(stack.hasTag() ? stack.getTag().hashCode() : 0).append(';');
+            if (stack.isEmpty() || stack.getCount() > 0) {
+                sb.append(bulkRemainder(stack)).append(',');
+            }
+        }
+        return sb.toString();
     }
 
     private ItemStack createArrowBatch(ItemStack tip, int outputCount, int maxEffects) {
@@ -306,12 +354,12 @@ public class FletchingMenu extends AbstractContainerMenu {
         tag.putInt("EffectCount", tag.getInt("EffectCount") + 1);
     }
 
-    private void consumeCraftInputs() {
+    /** 按实际取走的箭数 n 扣料（n 已由调用方按预览校验）。 */
+    private void consumeCraftInputs(int n) {
+        if (n < 1) return;
         ItemStack shaft = container.getItem(SLOT_SHAFT);
         ItemStack tip = container.getItem(SLOT_TIP);
-        int n = computeBatchSize(container.getItem(SLOT_FEATHER), shaft, tip);
-        if (n < 1) return;
-        container.getItem(SLOT_FEATHER).shrink(n);
+        container.getItem(SLOT_FEATHER).shrink(Math.min(n, container.getItem(SLOT_FEATHER).getCount()));
         if (shaft.is(ItemTags.PLANKS)) consumeBulk(shaft, n, PLANK_SHAFTS);
         else shaft.shrink(n);
         if (!tip.isEmpty()) {
@@ -325,6 +373,10 @@ public class FletchingMenu extends AbstractContainerMenu {
             ItemStack effect = container.getItem(SLOT_EFFECT_1 + i);
             if (!effect.isEmpty()) {
                 consumeBulk(effect, n, isPotion(effect) ? POTION_ARROW_RATIO : EFFECT_ARROW_RATIO);
+                if (station != null) {
+                    station.markEffectUsed(net.minecraftforge.registries.ForgeRegistries.ITEMS
+                            .getKey(effect.getItem()).toString());
+                }
             }
         }
         container.setChanged();
@@ -336,15 +388,21 @@ public class FletchingMenu extends AbstractContainerMenu {
         }
     }
 
-    /** 根据当前材料刷新成品槽预览。 */
+    /** 根据当前材料刷新成品槽预览（不覆盖玩家尚未取走的既有预览）。 */
     private void updateCraftOutput() {
         if (updatingOutput) return;
         updatingOutput = true;
         ItemStack preview = previewCraftResult();
         ItemStack current = container.getItem(SLOT_CRAFT_OUTPUT);
-        boolean same = preview.isEmpty() ? current.isEmpty()
-                : !current.isEmpty() && ItemStack.isSameItemSameTags(current, preview) && current.getCount() == preview.getCount();
-        if (!same) container.setItem(SLOT_CRAFT_OUTPUT, preview);
+        if (current.isEmpty()) {
+            if (!preview.isEmpty()) container.setItem(SLOT_CRAFT_OUTPUT, preview);
+        } else if (preview.isEmpty()) {
+            container.setItem(SLOT_CRAFT_OUTPUT, ItemStack.EMPTY);
+        } else if (!ItemStack.isSameItemSameTags(current, preview)) {
+            container.setItem(SLOT_CRAFT_OUTPUT, preview);
+        } else if (current.getCount() < preview.getCount()) {
+            current.setCount(preview.getCount());
+        }
         updatingOutput = false;
     }
 
@@ -384,7 +442,7 @@ public class FletchingMenu extends AbstractContainerMenu {
 
     /** 取出弓时自动把材料效果附加到弓上，并各消耗 1 个材料。 */
     private void applyBowEffects(ItemStack bow) {
-        if (getTier() < 5) return;
+        if (getTier() < 5 || bow.isEmpty() || !(bow.getItem() instanceof BowItem)) return;
         CompoundTag tag = bow.getOrCreateTag();
         boolean applied = false;
         for (int i = 0; i < BOW_EFFECT_COUNT; i++) {
@@ -399,6 +457,10 @@ public class FletchingMenu extends AbstractContainerMenu {
             if (!effect.isEmpty()) {
                 effect.shrink(1);
                 applied = true;
+                if (station != null) {
+                    station.markEffectUsed(net.minecraftforge.registries.ForgeRegistries.ITEMS
+                            .getKey(effect.getItem()).toString());
+                }
             }
         }
         if (applied) container.setChanged();
@@ -420,25 +482,42 @@ public class FletchingMenu extends AbstractContainerMenu {
         }
     }
 
-    /** 效果材料消耗：非药水 ⌈N/4⌉，药水 ⌈N/8⌉。 */
-    private int effectCost(ItemStack effect, int outputCount) {
-        int ratio = isPotion(effect) ? POTION_ARROW_RATIO : EFFECT_ARROW_RATIO;
-        return (outputCount + ratio - 1) / ratio;
+    /** 同类效果多槽叠加的递减权重（第 1~5 份）。 */
+    private static final double[] STACK_WEIGHTS = {1.0D, 0.7D, 0.45D, 0.3D, 0.2D};
+
+    /** 效果材料 → NBT 字段与递减累计（所有效果均为数值型，不与药水/附魔重叠）。 */
+    private static String effectKey(Item item) {
+        if (item == Items.FIREWORK_ROCKET) return "RocketPower";
+        if (item == Items.SLIME_BLOCK) return "BouncePower";
+        if (item == Items.ECHO_SHARD) return "EchoPower";
+        if (item == Items.ENDER_PEARL) return "PearlPower";
+        if (item == Items.CHORUS_FRUIT) return "ChorusPower";
+        if (item == Items.SLIME_BALL) return "YankPower";
+        if (item == Items.BELL) return "BellPower";
+        if (item == Items.GOAT_HORN) return "HornPower";
+        if (item == Items.HONEY_BOTTLE) return "StickPower";
+        if (item == Items.BLAZE_POWDER) return "FirePower";
+        if (item == Items.COBWEB) return "WebPower";
+        if (item == Items.BONE_MEAL) return "BonePower";
+        if (item == Items.SNOWBALL) return "SnowPower";
+        if (item == Items.GLOWSTONE_DUST) return "LightPower";
+        if (item == Items.GUNPOWDER) return "ShockPower";
+        if (item == Items.DRAGON_BREATH) return "CloudPower";
+        if (item == Items.PRISMARINE_SHARD) return "PiercePower";
+        if (item == Items.AMETHYST_BLOCK) return "ResonancePower";
+        return null;
     }
 
-    private static void applyEffect(CompoundTag tag, ItemStack effect) {
+    /** 每类效果的当前叠加份数（用于按权重累计）。 */
+    private void applyEffect(CompoundTag tag, ItemStack effect) {
         int count = tag.getInt("EffectCount");
         tag.putInt("EffectCount", count + 1);
-        if (effect.is(Items.FIREWORK_ROCKET)) tag.putInt("Rocket", tag.getInt("Rocket") + 2);
-        else if (effect.is(Items.BLAZE_POWDER)) tag.putInt("Flame", tag.getInt("Flame") + 1);
-        else if (effect.is(Items.GUNPOWDER)) tag.putInt("Explosion", tag.getInt("Explosion") + 1);
-        else if (effect.is(Items.GLOWSTONE_DUST)) tag.putInt("Glow", tag.getInt("Glow") + 1);
-        else if (effect.is(Items.SLIME_BALL)) tag.putInt("Knockback", tag.getInt("Knockback") + 1);
-        else if (isPotion(effect)) {
-            CompoundTag potionTag = effect.getTag();
-            if (potionTag != null) tag.put("PotionData", potionTag.copy());
-            tag.putBoolean("PotionOnly", true);
-        }
+        String key = effectKey(effect.getItem());
+        if (key == null) return;
+        int stacks = tag.getInt(key + "Stacks");
+        double weight = STACK_WEIGHTS[Math.min(STACK_WEIGHTS.length - 1, stacks)];
+        tag.putInt(key + "Stacks", stacks + 1);
+        tag.putDouble(key, tag.getDouble(key) + weight);
     }
 
     private static boolean isPotion(ItemStack stack) {
@@ -486,9 +565,9 @@ public class FletchingMenu extends AbstractContainerMenu {
         return tipStats(stack) != null;
     }
 
+    /** 效果槽只接受非药水道具（药水仅可放箭头槽做药水箭）。 */
     private static boolean isEffect(ItemStack stack) {
-        return isPotion(stack) || stack.is(Items.FIREWORK_ROCKET) || stack.is(Items.BLAZE_POWDER)
-                || stack.is(Items.GUNPOWDER) || stack.is(Items.GLOWSTONE_DUST) || stack.is(Items.SLIME_BALL);
+        return effectKey(stack.getItem()) != null;
     }
 
     private static boolean isBowEffect(ItemStack stack) {
@@ -516,6 +595,7 @@ public class FletchingMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
+        container.stopOpen(player);
         if (station != null) container.setItem(SLOT_CRAFT_OUTPUT, ItemStack.EMPTY);
     }
 
@@ -563,7 +643,7 @@ public class FletchingMenu extends AbstractContainerMenu {
         private boolean tierOk() { return getTier() >= minTier; }
 
         @Override public boolean mayPlace(ItemStack stack) {
-            return tierOk() && filter.test(stack);
+            return tierOk() && (tab < 0 || getTab() == tab) && filter.test(stack);
         }
 
         /** 有已用零头的批量材料，最后 1 份被台子扣住不可取出。 */
@@ -589,7 +669,12 @@ public class FletchingMenu extends AbstractContainerMenu {
         @Override public boolean isActive() { return getTab() == TAB_CRAFT; }
 
         @Override public void onTake(Player player, ItemStack stack) {
-            consumeCraftInputs();
+            // 仅当预览仍与当前输入一致时才允许结算，避免输入被改动后免费取走旧预览
+            ItemStack fresh = previewCraftResult();
+            if (!fresh.isEmpty() && ItemStack.isSameItemSameTags(fresh, stack)) {
+                int taken = Math.min(stack.getCount(), fresh.getCount());
+                consumeCraftInputs(taken);
+            }
             updateCraftOutput();
             super.onTake(player, stack);
         }
@@ -599,8 +684,6 @@ public class FletchingMenu extends AbstractContainerMenu {
         EnchantOutputSlot(Container container, int index, int x, int y, int tab, int minTier) {
             super(container, index, x, y, tab, minTier, stack -> false);
         }
-
-        @Override public void onTake(Player player, ItemStack stack) { super.onTake(player, stack); }
     }
 
     /** 弓槽：取出弓时把材料效果附加到弓上。 */
@@ -616,7 +699,8 @@ public class FletchingMenu extends AbstractContainerMenu {
         @Override public boolean isActive() { return getTab() == TAB_BOW && getTier() >= 5; }
 
         @Override public void onTake(Player player, ItemStack stack) {
-            applyBowEffects(stack);
+            // 写入真实堆栈（而非 quickMove 的副本），确保背包里的弓拿到改装数据
+            applyBowEffects(getItem());
             super.onTake(player, stack);
         }
     }
@@ -636,7 +720,8 @@ public class FletchingMenu extends AbstractContainerMenu {
             return isUpgradeMaterial(stack);
         }
 
-        @Override public boolean isActive() { return getTier() < 5; }
+        /** 满级后若槽内还有剩余材料，保持激活以便玩家取回。 */
+        @Override public boolean isActive() { return getTier() < 5 || hasItem(); }
 
         @Override public void setByPlayer(ItemStack stack) {
             super.setByPlayer(stack);

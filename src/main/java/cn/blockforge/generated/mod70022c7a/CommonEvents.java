@@ -3,14 +3,17 @@ package cn.blockforge.generated.mod70022c7a;
 import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlockEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -32,9 +35,28 @@ public final class CommonEvents {
     /** 放置原版制箭台时直接替换为实用制箭台（基础级，从铜锭开始升级）。 */
     @SubscribeEvent
     public static void replacePlacedTable(BlockEvent.EntityPlaceEvent event) {
-        if (!event.getPlacedBlock().is(Blocks.FLETCHING_TABLE)) return;
         if (!(event.getLevel() instanceof net.minecraft.server.level.ServerLevel level)) return;
+        // 用世界实际方块判定，避免非玩家实体放置时 getPlacedBlock 语义不同导致误判
+        if (!level.getBlockState(event.getPos()).is(Blocks.FLETCHING_TABLE)) return;
         level.setBlockAndUpdate(event.getPos(), GeneratedMod.FLETCHING_STATION.get().defaultBlockState());
+    }
+
+    /** 粘着箭：目标身上的数据每 20 tick 结算一次物理伤害，到期自动清理。 */
+    @SubscribeEvent
+    public static void tickSticking(LivingEvent.LivingTickEvent event) {
+        if (!(event.getEntity().level() instanceof net.minecraft.server.level.ServerLevel server)) return;
+        LivingEntity living = event.getEntity();
+        if (living.tickCount % 20 != 0) return;
+        CompoundTag data = living.getPersistentData();
+        if (!data.contains("FletchingStickPower")) return;
+        long until = data.getLong("FletchingStickUntil");
+        if (server.getGameTime() >= until) {
+            data.remove("FletchingStickPower");
+            data.remove("FletchingStickUntil");
+            return;
+        }
+        double power = data.getDouble("FletchingStickPower");
+        living.hurt(server.damageSources().generic(), (float) (0.5D * power));
     }
 
     @SubscribeEvent
