@@ -16,13 +16,13 @@
 ## 安装
 
 1. 安装 [Minecraft Forge 1.20.1-47.4.0](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html)
-2. 下载 `mod_70022c7a-1.0.0-r1.jar`（Releases）放入 `.minecraft/mods/`
+2. 下载 `z80z-practical-fletching-table-1.0.0-r1.jar`（Releases）放入 `.minecraft/mods/`
 
 ## 构建
 
 ```bash
 gradle build
-# 产物：build/libs/mod_70022c7a-1.0.0-r1.jar
+# 产物：build/libs/z80z-practical-fletching-table-1.0.0-r1.jar
 ```
 
 需要 JDK 17。开发调试：`gradle runClient`。
