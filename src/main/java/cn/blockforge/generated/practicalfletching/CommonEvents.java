@@ -1,6 +1,6 @@
-package cn.blockforge.generated.mod70022c7a;
+package cn.blockforge.generated.practicalfletching;
 
-import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlockEntity;
+import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -97,7 +97,7 @@ public final class CommonEvents {
             if (event.getLevel().getBlockEntity(event.getPos()) instanceof FletchingStationBlockEntity station) station.upgrade();
             if (!event.getEntity().getAbilities().instabuild) held.shrink(1);
             event.getLevel().levelEvent(2005, event.getPos().above(), 0);
-            event.getEntity().displayClientMessage(Component.translatable("message.mod_70022c7a.copper_created"), true);
+            event.getEntity().displayClientMessage(Component.translatable("message.z80z_practical_fletching.copper_created"), true);
         }
     }
 
@@ -158,10 +158,10 @@ public final class CommonEvents {
         ItemStack stack = event.getItemStack();
         if (!stack.hasTag()) return;
         if (stack.getTag().getInt("FletchingVelocity") > 0)
-            event.getToolTip().add(Component.translatable("tooltip.mod_70022c7a.bow_velocity").withStyle(ChatFormatting.AQUA));
+            event.getToolTip().add(Component.translatable("tooltip.z80z_practical_fletching.bow_velocity").withStyle(ChatFormatting.AQUA));
         if (stack.getTag().getInt("FletchingFlame") > 0)
-            event.getToolTip().add(Component.translatable("tooltip.mod_70022c7a.bow_flame").withStyle(ChatFormatting.GOLD));
+            event.getToolTip().add(Component.translatable("tooltip.z80z_practical_fletching.bow_flame").withStyle(ChatFormatting.GOLD));
         if (stack.getTag().getInt("FletchingFocus") > 0)
-            event.getToolTip().add(Component.translatable("tooltip.mod_70022c7a.bow_focus").withStyle(ChatFormatting.LIGHT_PURPLE));
+            event.getToolTip().add(Component.translatable("tooltip.z80z_practical_fletching.bow_focus").withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 }

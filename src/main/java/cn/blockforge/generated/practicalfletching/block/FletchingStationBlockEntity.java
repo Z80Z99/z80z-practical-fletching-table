@@ -1,7 +1,7 @@
-package cn.blockforge.generated.mod70022c7a.block;
+package cn.blockforge.generated.practicalfletching.block;
 
-import cn.blockforge.generated.mod70022c7a.GeneratedMod;
-import cn.blockforge.generated.mod70022c7a.menu.FletchingMenu;
+import cn.blockforge.generated.practicalfletching.GeneratedMod;
+import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -83,11 +83,11 @@ public class FletchingStationBlockEntity extends BaseContainerBlockEntity {
     }
 
     public Component getTierName() {
-        return Component.translatable("tier.mod_70022c7a." + tier);
+        return Component.translatable("tier.z80z_practical_fletching." + tier);
     }
 
     @Override protected Component getDefaultName() {
-        return Component.translatable("container.mod_70022c7a.fletching_station");
+        return Component.translatable("container.z80z_practical_fletching.fletching_station");
     }
 
     @Override protected AbstractContainerMenu createMenu(int id, Inventory inventory) {

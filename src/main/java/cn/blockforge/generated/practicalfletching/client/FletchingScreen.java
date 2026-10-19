@@ -1,7 +1,7 @@
-package cn.blockforge.generated.mod70022c7a.client;
+package cn.blockforge.generated.practicalfletching.client;
 
-import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlockEntity;
-import cn.blockforge.generated.mod70022c7a.menu.FletchingMenu;
+import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
+import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -99,7 +99,7 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         super.init();
         offerBars.clear();
         prevButton = addRenderableWidget(new ChevronButton(leftPos + 102, topPos + 80, 13, 40, true, () -> switchPage(-1)));
-        prevButton.setTooltip(Tooltip.create(Component.translatable("hint.mod_70022c7a.page.prev")));
+        prevButton.setTooltip(Tooltip.create(Component.translatable("hint.z80z_practical_fletching.page.prev")));
         nextButton = addRenderableWidget(new ChevronButton(leftPos + 332, topPos + 80, 13, 40, false, () -> switchPage(1)));
         for (int i = 0; i < 3; i++) {
             offerBars.add(addRenderableWidget(new OfferBar(leftPos + 178, topPos + 78 + i * 20, 104, 16, i)));
@@ -149,10 +149,10 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         nextButton.active = tab < 2 && isPageUnlocked(tab + 1);
         if (tab >= 2) return;
         Component hint;
-        if (nextButton.active) hint = Component.translatable("hint.mod_70022c7a.page.next");
+        if (nextButton.active) hint = Component.translatable("hint.z80z_practical_fletching.page.next");
         else hint = Component.translatable(tab + 1 == 1
-                ? "hint.mod_70022c7a.page.enchant_locked"
-                : "hint.mod_70022c7a.page.bow_locked");
+                ? "hint.z80z_practical_fletching.page.enchant_locked"
+                : "hint.z80z_practical_fletching.page.bow_locked");
         nextButton.setTooltip(Tooltip.create(hint));
     }
 
@@ -201,11 +201,11 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         if (slotTab >= 0 && slotTab != menu.getTab()) return;
         if (index == FletchingMenu.SLOT_UPGRADE && menu.getTier() >= 5) return;
         List<Component> lines = new ArrayList<>();
-        lines.add(Component.translatable("hint.mod_70022c7a.slot." + index).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("hint.z80z_practical_fletching.slot." + index).withStyle(ChatFormatting.GRAY));
         int required = SLOT_REQUIRED_TIER[index];
         if (required > 0 && menu.getTier() < required) {
-            lines.add(Component.translatable("hint.mod_70022c7a.locked",
-                    Component.translatable("tier.mod_70022c7a." + required)).withStyle(ChatFormatting.RED));
+            lines.add(Component.translatable("hint.z80z_practical_fletching.locked",
+                    Component.translatable("tier.z80z_practical_fletching." + required)).withStyle(ChatFormatting.RED));
         }
         graphics.renderTooltip(font, lines, Optional.empty(), mouseX, mouseY);
     }
@@ -231,9 +231,9 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         int banked = menu.getRemainderFor(index);
         if (banked > 0) {
             int total = stack.getCount() * ratio;
-            lines.add(Component.translatable("hint.mod_70022c7a.remainder", total - banked, total).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("hint.z80z_practical_fletching.remainder", total - banked, total).withStyle(ChatFormatting.GRAY));
             if (stack.getCount() == 1) {
-                lines.add(Component.translatable("hint.mod_70022c7a.locked_last").withStyle(ChatFormatting.RED));
+                lines.add(Component.translatable("hint.z80z_practical_fletching.locked_last").withStyle(ChatFormatting.RED));
             }
         }
         return lines;
@@ -267,7 +267,7 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         graphics.fill(x + 9, y + 16, x + 101, y + 204, PANEL_FILL);
         graphics.renderOutline(x + 9, y + 16, 92, 188, BORDER);
         graphics.renderOutline(x + 12, y + 19, 86, 182, BORDER_SOFT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.inventory"), x + 55, y + 23, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.inventory"), x + 55, y + 23, TEXT);
 
         drawSlotFrames(graphics, x, y);
         drawUpgradeLine(graphics, x, y);
@@ -334,36 +334,36 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
     }
 
     private void drawCraftPage(GuiGraphics graphics, int x, int y) {
-        drawCenteredNoShadow(graphics, Component.translatable("page.mod_70022c7a.craft"), x + 218, y + 30, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("desc.mod_70022c7a.craft1"), x + 218, y + 48, TEXT_MUTED);
-        drawCenteredNoShadow(graphics, Component.translatable("desc.mod_70022c7a.craft2"), x + 218, y + 62, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("page.z80z_practical_fletching.craft"), x + 218, y + 30, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("desc.z80z_practical_fletching.craft1"), x + 218, y + 48, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("desc.z80z_practical_fletching.craft2"), x + 218, y + 62, TEXT_MUTED);
 
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.feather"), x + 132, y + 80, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.shaft"), x + 156, y + 80, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.tip"), x + 180, y + 80, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.effects_tier"), x + 242, y + 80, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.output"), x + 304, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.feather"), x + 132, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.shaft"), x + 156, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.tip"), x + 180, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.effects_tier"), x + 242, y + 80, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.output"), x + 304, y + 80, TEXT);
 
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.planks"), x + 156, y + 114, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.potion"), x + 180, y + 114, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.effects"), x + 242, y + 114, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("note.mod_70022c7a.shaft"), x + 156, y + 128, TEXT_MUTED);
-        drawCenteredNoShadow(graphics, Component.translatable("desc.mod_70022c7a.craft_hint"), x + 218, y + 152, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.planks"), x + 156, y + 114, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.potion"), x + 180, y + 114, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.effects"), x + 242, y + 114, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("note.z80z_practical_fletching.shaft"), x + 156, y + 128, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("desc.z80z_practical_fletching.craft_hint"), x + 218, y + 152, TEXT_MUTED);
     }
 
     private void drawEnchantPage(GuiGraphics graphics, int x, int y) {
-        drawCenteredNoShadow(graphics, Component.translatable("page.mod_70022c7a.enchant"), x + 218, y + 30, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.arrow"), x + 138, y + 84, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.lapis"), x + 162, y + 84, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.output"), x + 304, y + 84, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("page.z80z_practical_fletching.enchant"), x + 218, y + 30, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.arrow"), x + 138, y + 84, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.lapis"), x + 162, y + 84, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.output"), x + 304, y + 84, TEXT);
     }
 
     private void drawBowPage(GuiGraphics graphics, int x, int y) {
-        drawCenteredNoShadow(graphics, Component.translatable("page.mod_70022c7a.bow"), x + 218, y + 30, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.bow"), x + 218, y + 72, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("label.mod_70022c7a.bow_effects"), x + 218, y + 138, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("page.z80z_practical_fletching.bow"), x + 218, y + 30, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.bow"), x + 218, y + 72, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("label.z80z_practical_fletching.bow_effects"), x + 218, y + 138, TEXT);
         if (menu.getTier() < 5) {
-            drawCenteredNoShadow(graphics, Component.translatable("hint.mod_70022c7a.bow_locked"), x + 218, y + 156, TEXT_LOCKED);
+            drawCenteredNoShadow(graphics, Component.translatable("hint.z80z_practical_fletching.bow_locked"), x + 218, y + 156, TEXT_LOCKED);
         }
     }
 
@@ -383,8 +383,8 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         graphics.renderOutline(x, y, WIDTH, HEIGHT, BORDER);
         graphics.renderOutline(x + 3, y + 3, WIDTH - 6, HEIGHT - 6, BORDER_MID);
 
-        drawCenteredNoShadow(graphics, Component.translatable("guide.mod_70022c7a.title"), x + WIDTH / 2, y + 10, TEXT);
-        drawCenteredNoShadow(graphics, Component.translatable("guide.mod_70022c7a.ratio"), x + WIDTH / 2, y + 24, TEXT_MUTED);
+        drawCenteredNoShadow(graphics, Component.translatable("guide.z80z_practical_fletching.title"), x + WIDTH / 2, y + 10, TEXT);
+        drawCenteredNoShadow(graphics, Component.translatable("guide.z80z_practical_fletching.ratio"), x + WIDTH / 2, y + 24, TEXT_MUTED);
 
         String[][] all = visibleGuideRows();
         int start = guidePage * GUIDE_PAGE_SIZE;
@@ -398,12 +398,12 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
 
         // 表头
         graphics.fill(tableLeft, tableTop, tableRight, tableTop + ROW_H, PANEL_FILL);
-        drawCellCentered(graphics, Component.translatable("guide.mod_70022c7a.col.item"), tableLeft, tableTop, COL_ICON, TEXT);
-        drawCellCentered(graphics, Component.translatable("guide.mod_70022c7a.col.name"),
+        drawCellCentered(graphics, Component.translatable("guide.z80z_practical_fletching.col.item"), tableLeft, tableTop, COL_ICON, TEXT);
+        drawCellCentered(graphics, Component.translatable("guide.z80z_practical_fletching.col.name"),
                 tableLeft + COL_ICON, tableTop, COL_NAME, TEXT);
-        drawCellCentered(graphics, Component.translatable("guide.mod_70022c7a.col.effect"),
+        drawCellCentered(graphics, Component.translatable("guide.z80z_practical_fletching.col.effect"),
                 tableLeft + COL_ICON + COL_NAME, tableTop, COL_EFFECT, TEXT);
-        drawCellCentered(graphics, Component.translatable("guide.mod_70022c7a.col.supply"),
+        drawCellCentered(graphics, Component.translatable("guide.z80z_practical_fletching.col.supply"),
                 tableLeft + COL_ICON + COL_NAME + COL_EFFECT, tableTop, COL_SUPPLY, TEXT);
 
         // 数据行（隔行底色；未使用过的道具以 ??? 遮挡）
@@ -459,7 +459,7 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
         graphics.fill(x + BACK_X, y + BACK_Y, x + BACK_X + BACK_W, y + BACK_Y + BACK_H,
                 backHover ? 0xFFF6EFDF : PAPER_LIGHT);
         graphics.renderOutline(x + BACK_X, y + BACK_Y, BACK_W, BACK_H, backHover ? BORDER : BORDER_MID);
-        drawCenteredNoShadow(graphics, Component.translatable("hint.mod_70022c7a.guide.back"),
+        drawCenteredNoShadow(graphics, Component.translatable("hint.z80z_practical_fletching.guide.back"),
                 x + BACK_X + BACK_W / 2, y + BACK_Y + 3, TEXT);
 
         // 图鉴内翻页箭头：页面左右两侧，垂直居中于表格
@@ -485,7 +485,7 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
 
     private Component guideText(String[] entry, String field) {
         return guideTextCache.computeIfAbsent(entry[1] + "." + field,
-                key -> Component.translatable("guide.mod_70022c7a." + entry[1] + "." + field));
+                key -> Component.translatable("guide.z80z_practical_fletching." + entry[1] + "." + field));
     }
 
     /** 图鉴显示全部道具；未使用过的行以「???」遮挡内容。弓改装材料组直接完整显示。 */
@@ -502,13 +502,13 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
     private List<Component> buildGuideTooltip(String[] entry, String supply, boolean revealed) {
         List<Component> lines = new ArrayList<>();
         if (!revealed) {
-            lines.add(Component.translatable("guide.mod_70022c7a.locked_row").withStyle(ChatFormatting.DARK_GRAY));
+            lines.add(Component.translatable("guide.z80z_practical_fletching.locked_row").withStyle(ChatFormatting.DARK_GRAY));
             return lines;
         }
-        lines.add(Component.translatable("guide.mod_70022c7a." + entry[1] + ".name").withStyle(ChatFormatting.GOLD));
-        lines.add(Component.translatable("guide.mod_70022c7a." + entry[1] + ".effect").withStyle(ChatFormatting.GRAY));
-        lines.add(Component.translatable("guide.mod_70022c7a." + entry[1] + ".detail").withStyle(ChatFormatting.DARK_GRAY));
-        lines.add(Component.translatable("guide.mod_70022c7a.supply_line", supply).withStyle(ChatFormatting.GREEN));
+        lines.add(Component.translatable("guide.z80z_practical_fletching." + entry[1] + ".name").withStyle(ChatFormatting.GOLD));
+        lines.add(Component.translatable("guide.z80z_practical_fletching." + entry[1] + ".effect").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("guide.z80z_practical_fletching." + entry[1] + ".detail").withStyle(ChatFormatting.DARK_GRAY));
+        lines.add(Component.translatable("guide.z80z_practical_fletching.supply_line", supply).withStyle(ChatFormatting.GREEN));
         return lines;
     }
 
@@ -587,10 +587,10 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
     private void drawUpgradeLine(GuiGraphics graphics, int x, int y) {
         if (menu.getTier() >= 5 && !menu.slots.get(FletchingMenu.SLOT_UPGRADE).hasItem()) return;
         if (menu.getTier() >= 5) {
-            graphics.drawString(font, Component.translatable("hint.mod_70022c7a.maxed"), x + 100, y + 186, 0xFF5E8C46, false);
+            graphics.drawString(font, Component.translatable("hint.z80z_practical_fletching.maxed"), x + 100, y + 186, 0xFF5E8C46, false);
             return;
         }
-        Component text = Component.translatable("label.mod_70022c7a.upgrade_line");
+        Component text = Component.translatable("label.z80z_practical_fletching.upgrade_line");
         graphics.drawString(font, text, x + 100, y + 186, TEXT, false);
         int lineStart = x + 100 + font.width(text) + 4;
         graphics.fill(lineStart, y + 189, x + 296, y + 190, BORDER_SOFT);
@@ -641,7 +641,7 @@ public class FletchingScreen extends AbstractContainerScreen<FletchingMenu> {
     private final class GuideButton extends Button {
         private GuideButton(int x, int y) {
             super(new Builder(Component.empty(), b -> { }).bounds(x, y, 10, 10)
-                    .createNarration(s -> Component.translatable("hint.mod_70022c7a.guide.open")));
+                    .createNarration(s -> Component.translatable("hint.z80z_practical_fletching.guide.open")));
         }
 
         @Override

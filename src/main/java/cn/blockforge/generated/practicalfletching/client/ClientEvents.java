@@ -1,7 +1,7 @@
-package cn.blockforge.generated.mod70022c7a.client;
+package cn.blockforge.generated.practicalfletching.client;
 
-import cn.blockforge.generated.mod70022c7a.GeneratedMod;
-import cn.blockforge.generated.mod70022c7a.entity.CraftedArrowEntity;
+import cn.blockforge.generated.practicalfletching.GeneratedMod;
+import cn.blockforge.generated.practicalfletching.entity.CraftedArrowEntity;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

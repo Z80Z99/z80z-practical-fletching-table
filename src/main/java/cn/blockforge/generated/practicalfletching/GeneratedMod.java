@@ -1,10 +1,10 @@
-package cn.blockforge.generated.mod70022c7a;
+package cn.blockforge.generated.practicalfletching;
 
-import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlock;
-import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlockEntity;
-import cn.blockforge.generated.mod70022c7a.entity.CraftedArrowEntity;
-import cn.blockforge.generated.mod70022c7a.item.CraftedArrowItem;
-import cn.blockforge.generated.mod70022c7a.menu.FletchingMenu;
+import cn.blockforge.generated.practicalfletching.block.FletchingStationBlock;
+import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
+import cn.blockforge.generated.practicalfletching.entity.CraftedArrowEntity;
+import cn.blockforge.generated.practicalfletching.item.CraftedArrowItem;
+import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;
@@ -24,7 +24,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 @Mod(GeneratedMod.MOD_ID)
 public final class GeneratedMod {
-    public static final String MOD_ID = "mod_70022c7a";
+    public static final String MOD_ID = "z80z_practical_fletching";
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);

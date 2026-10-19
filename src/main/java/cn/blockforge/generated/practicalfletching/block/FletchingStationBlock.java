@@ -1,7 +1,7 @@
-package cn.blockforge.generated.mod70022c7a.block;
+package cn.blockforge.generated.practicalfletching.block;
 
-import cn.blockforge.generated.mod70022c7a.GeneratedMod;
-import cn.blockforge.generated.mod70022c7a.menu.FletchingMenu;
+import cn.blockforge.generated.practicalfletching.GeneratedMod;
+import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -46,7 +46,7 @@ public class FletchingStationBlock extends BaseEntityBlock {
                 && level.getBlockEntity(pos) instanceof FletchingStationBlockEntity station) {
             ItemStack drop = new ItemStack(this);
             BlockItem.setBlockEntityData(drop, station.getType(), station.saveProgress());
-            drop.setHoverName(Component.translatable("block.mod_70022c7a.fletching_station")
+            drop.setHoverName(Component.translatable("block.z80z_practical_fletching.fletching_station")
                     .append(Component.literal(" · ").withStyle(ChatFormatting.DARK_GRAY))
                     .append(station.getTierName().copy().withStyle(ChatFormatting.GOLD)));
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), drop);

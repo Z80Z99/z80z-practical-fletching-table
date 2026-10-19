@@ -19,7 +19,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "mod_70022c7a:fletching_station",
+          "name": "z80z_practical_fletching:fletching_station",
           "functions": [
             {
               "function": "minecraft:copy_nbt",
