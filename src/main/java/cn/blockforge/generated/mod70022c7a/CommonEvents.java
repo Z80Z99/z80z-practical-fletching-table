@@ -3,6 +3,7 @@ package cn.blockforge.generated.mod70022c7a;
 import cn.blockforge.generated.mod70022c7a.block.FletchingStationBlockEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -39,6 +40,31 @@ public final class CommonEvents {
         // 用世界实际方块判定，避免非玩家实体放置时 getPlacedBlock 语义不同导致误判
         if (!level.getBlockState(event.getPos()).is(Blocks.FLETCHING_TABLE)) return;
         level.setBlockAndUpdate(event.getPos(), GeneratedMod.FLETCHING_STATION.get().defaultBlockState());
+    }
+
+    /** 区块加载时把其中的原版制箭台替换为实用制箭台（覆盖村庄结构与旧存档）。 */
+    @SubscribeEvent
+    public static void replaceWorldgenTables(net.minecraftforge.event.level.ChunkEvent.Load event) {
+        if (!(event.getLevel() instanceof net.minecraft.server.level.ServerLevel)) return;
+        net.minecraft.world.level.chunk.ChunkAccess chunk = event.getChunk();
+        Block station = GeneratedMod.FLETCHING_STATION.get();
+        net.minecraft.world.level.chunk.LevelChunkSection[] sections = chunk.getSections();
+        for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+            net.minecraft.world.level.chunk.LevelChunkSection section = sections[sectionIndex];
+            if (!section.maybeHas(state -> state.is(Blocks.FLETCHING_TABLE))) continue;
+            int minY = chunk.getMinBuildHeight() + sectionIndex * 16;
+            for (int x = 0; x < 16; x++) {
+                for (int y = 0; y < 16; y++) {
+                    for (int z = 0; z < 16; z++) {
+                        BlockState state = section.getBlockState(x, y, z);
+                        if (!state.is(Blocks.FLETCHING_TABLE)) continue;
+                        BlockPos pos = new BlockPos(chunk.getPos().getMinBlockX() + x, minY + y, chunk.getPos().getMinBlockZ() + z);
+                        // 直接写入区块数据，避免加载期触发方块更新级联；setBlockState 会自动创建方块实体
+                        chunk.setBlockState(pos, station.defaultBlockState(), false);
+                    }
+                }
+            }
+        }
     }
 
     /** 粘着箭：目标身上的数据每 20 tick 结算一次物理伤害，到期自动清理。 */
