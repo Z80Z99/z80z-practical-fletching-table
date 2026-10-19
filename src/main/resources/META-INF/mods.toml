@@ -1,12 +1,14 @@
 modLoader="javafml"
 loaderVersion="[47,)"
-license="All Rights Reserved"
+license="MIT"
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-authors="AutoMods"
-description='''制箭台实用化'''
+authors="Z80Z99"
+description='''制箭台实用化：把原版制箭台改造成可升级的造箭工作站，11 种箭头、8 种附魔、18 种效果道具与按支数累计的材料系统。
+
+Practical Fletching Table - turns the vanilla fletching table into an upgradable archery workstation.'''
 [[dependencies.${mod_id}]]
 modId="forge"
 mandatory=true
