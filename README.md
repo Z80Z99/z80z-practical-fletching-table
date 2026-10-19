@@ -55,4 +55,4 @@ Windows 使用 `gradlew.bat build`。开发调试：`./gradlew runClient`。
 
 ## 许可证
 
-All Rights Reserved，详见 [LICENSE](LICENSE)。
+MIT，详见 [LICENSE](LICENSE)。
