@@ -1,7 +1,7 @@
-package cn.blockforge.generated.practicalfletching.block;
+package com.github.z80z.practicalfletching.block;
 
-import cn.blockforge.generated.practicalfletching.GeneratedMod;
-import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
+import com.github.z80z.practicalfletching.GeneratedMod;
+import com.github.z80z.practicalfletching.menu.FletchingMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;

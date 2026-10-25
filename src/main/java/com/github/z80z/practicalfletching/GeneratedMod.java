@@ -1,10 +1,10 @@
-package cn.blockforge.generated.practicalfletching;
+package com.github.z80z.practicalfletching;
 
-import cn.blockforge.generated.practicalfletching.block.FletchingStationBlock;
-import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
-import cn.blockforge.generated.practicalfletching.entity.CraftedArrowEntity;
-import cn.blockforge.generated.practicalfletching.item.CraftedArrowItem;
-import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
+import com.github.z80z.practicalfletching.block.FletchingStationBlock;
+import com.github.z80z.practicalfletching.block.FletchingStationBlockEntity;
+import com.github.z80z.practicalfletching.entity.CraftedArrowEntity;
+import com.github.z80z.practicalfletching.item.CraftedArrowItem;
+import com.github.z80z.practicalfletching.menu.FletchingMenu;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;

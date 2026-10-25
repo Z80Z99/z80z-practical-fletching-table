@@ -1,6 +1,6 @@
-package cn.blockforge.generated.practicalfletching;
+package com.github.z80z.practicalfletching;
 
-import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
+import com.github.z80z.practicalfletching.block.FletchingStationBlockEntity;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;

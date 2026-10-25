@@ -1,6 +1,6 @@
-package cn.blockforge.generated.practicalfletching.item;
+package com.github.z80z.practicalfletching.item;
 
-import cn.blockforge.generated.practicalfletching.entity.CraftedArrowEntity;
+import com.github.z80z.practicalfletching.entity.CraftedArrowEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

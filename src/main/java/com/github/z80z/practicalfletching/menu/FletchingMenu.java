@@ -1,7 +1,7 @@
-package cn.blockforge.generated.practicalfletching.menu;
+package com.github.z80z.practicalfletching.menu;
 
-import cn.blockforge.generated.practicalfletching.GeneratedMod;
-import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
+import com.github.z80z.practicalfletching.GeneratedMod;
+import com.github.z80z.practicalfletching.block.FletchingStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;

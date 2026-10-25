@@ -1,7 +1,7 @@
-package cn.blockforge.generated.practicalfletching.client;
+package com.github.z80z.practicalfletching.client;
 
-import cn.blockforge.generated.practicalfletching.block.FletchingStationBlockEntity;
-import cn.blockforge.generated.practicalfletching.menu.FletchingMenu;
+import com.github.z80z.practicalfletching.block.FletchingStationBlockEntity;
+import com.github.z80z.practicalfletching.menu.FletchingMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

@@ -1,6 +1,6 @@
-package cn.blockforge.generated.practicalfletching.entity;
+package com.github.z80z.practicalfletching.entity;
 
-import cn.blockforge.generated.practicalfletching.GeneratedMod;
+import com.github.z80z.practicalfletching.GeneratedMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
